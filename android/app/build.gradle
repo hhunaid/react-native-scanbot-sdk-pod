@@ -1,0 +1,47 @@
+apply plugin: 'com.android.library'
+
+android {
+    compileSdkVersion 25
+    buildToolsVersion '25.0.3'
+
+    defaultConfig {
+        minSdkVersion 16
+        targetSdkVersion 25
+        versionCode 1
+        versionName "1.0"
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+        }
+        debug {
+            minifyEnabled false
+        }
+    }
+    lintOptions {
+        abortOnError false
+    }
+    dexOptions {
+        javaMaxHeapSize '8g'
+    }
+}
+
+dependencies {
+    compile fileTree(include: ['*.jar'], dir: 'libs')
+
+    compile 'com.facebook.react:react-native:+'
+
+    //compile 'com.android.support:design:25.3.1'
+    //compile 'com.android.support:appcompat-v7:25.3.1'
+    compile 'com.android.support:appcompat-v7:24+'
+
+    compile ('io.scanbot:sdk-package-2:1.26.5') {
+        exclude group: 'com.github.rjeschke', module: 'neetutils-base'
+        exclude group: 'org.apache.log4j', module: 'scanbotsdk-base'
+
+        // Exclude google play-services-vision and zxing libs to be compatible to other 3rd party RN modules which are based on zxing.
+        // TODO Eddy: Remove both excludes as soon as we have implemented our Scanbot SDK QR/barcode scanner functionality in this module.
+        exclude group: 'com.google.android.gms', module: 'play-services-vision'
+        exclude group: 'com.google.zxing'
+    }
+}

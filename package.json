@@ -1,0 +1,55 @@
+{
+  "name": "react-native-scanbot-sdk",
+  "version": "1.0.4",
+  "description": "Scanbot SDK React Native Module",
+  "main": "src/index.js",
+  "files": [
+    "src/*.js",
+    "android/**",
+    "ios/**",
+    "README.md",
+    "Libraries.txt"
+  ],
+  "tags": [
+    "react",
+    "react-native",
+    "scanbot",
+    "scanbot-sdk",
+    "sdk",
+    "scanner"
+  ],
+  "keywords": [
+    "react-component",
+    "react-native",
+    "ios",
+    "android",
+    "scanbot",
+    "sdk",
+    "scanbot-sdk",
+    "camera",
+    "scanner",
+    "scanning",
+    "document detection",
+    "edge detection",
+    "cropping",
+    "pdf",
+    "pdf creation",
+    "image optimization",
+    "image filter",
+    "ocr",
+    "optical character recognition"
+  ],
+  "peerDependencies": {
+    "react": "^15.4.2",
+    "react-native": "0.40.0"
+  },
+  "author": "doo GmbH",
+  "homepage": "https://scanbot.io",
+  "contributors": [
+    {
+      "name": "Scanbot",
+      "email": "sdk@scanbot.io",
+      "url": "https://scanbot.io/sdk.html"
+    }
+  ]
+}
