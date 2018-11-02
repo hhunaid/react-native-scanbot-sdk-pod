@@ -79,15 +79,18 @@
     return [[NSFileManager defaultManager] fileExistsAtPath:[NSURL URLWithString:imageFileUri].path];
 }
 
-+ (SBSDKImageStorage *)imageStorageFromFilesList:(NSArray <NSString *> *)imageFilePaths {
-  SBSDKImageStorage *storage = [SBSDKImageStorage new];
-  for (NSString *imageFilePath in imageFilePaths) {
-    UIImage *image = [ImageUtils loadImage:imageFilePath];
-    if (image) {
-      [storage addImage:image];
++ (SBSDKIndexedImageStorage *)imageStorageFromFilesList:(NSArray <NSString *> *)imageFilePaths {
+    NSString *tempSubFolderName = [[NSUUID UUID] UUIDString];
+    NSURL *tempStorageDirUrl = [[NSURL alloc] initFileURLWithPath: [NSString stringWithFormat:@"%@/%@", ImageUtils.tempDirectoryPath, tempSubFolderName]];
+    SBSDKStorageLocation *location = [[SBSDKStorageLocation alloc] initWithBaseURL:tempStorageDirUrl];
+    SBSDKIndexedImageStorage *storage = [[SBSDKIndexedImageStorage alloc] initWithStorageLocation:location];
+    for (NSString *imageFilePath in imageFilePaths) {
+        UIImage *image = [ImageUtils loadImage:imageFilePath];
+        if (image) {
+            [storage addImage:image];
+        }
     }
-  }
-  return storage;
+    return storage;
 }
 
 @end

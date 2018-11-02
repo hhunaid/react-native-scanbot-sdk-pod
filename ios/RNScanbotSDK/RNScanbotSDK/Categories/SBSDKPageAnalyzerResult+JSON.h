@@ -4,7 +4,7 @@
 //  Copyright (c) 2017 doo GmbH. All rights reserved.
 //
 
-@import ScanbotSDK;
+#import <ScanbotSDK/ScanbotSDK.h>
 
 @interface SBSDKPageAnalyzerResult (JSON)
 

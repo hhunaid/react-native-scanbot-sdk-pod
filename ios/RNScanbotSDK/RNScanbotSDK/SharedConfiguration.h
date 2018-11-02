@@ -5,16 +5,14 @@
 //
 
 #import <Foundation/Foundation.h>
-
-static const NSInteger kDefaultImageCompressionQuality = 80;
+#import "ScanbotSDKConfiguration.h"
 
 @interface SharedConfiguration : NSObject
 
-@property (nonatomic) BOOL loggingEnabled;
+@property (nonatomic) ScanbotSDKConfiguration* sdkConfiguration;
 @property (nonatomic) BOOL isSDKInitialized;
 
 + (instancetype)defaultConfiguration;
-
 + (BOOL)isSDKInitialized;
 
 @end

@@ -14,5 +14,5 @@ Pod::Spec.new do |s|
   s.resources      = 'ios/images/*.png'
   s.source         = { :git => "https://github.com/oblador/react-native-keychain.git", :tag => "v#{s.version}" }
   s.dependency 'React'
-  s.dependency 'ScanbotSDK', '~> 1.6.0'
+  s.dependency 'ScanbotSDK'  
 end

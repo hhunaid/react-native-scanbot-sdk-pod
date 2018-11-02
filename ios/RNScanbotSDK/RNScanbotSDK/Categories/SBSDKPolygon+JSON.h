@@ -10,6 +10,5 @@
 
 - (NSArray *)polygonPoints;
 - (NSString *)detectionStatusString;
-- (NSString *)detectionStatusStringFromSBSDKStatus:(SBSDKDocumentDetectionStatus)status;
 
 @end

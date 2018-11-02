@@ -10,134 +10,153 @@
 #import "SharedConfiguration.h"
 #import "ImageUtils.h"
 #import "OCRUtils.h"
+#import "HashUtils.h"
 #import "SBSDKPolygon+JSON.h"
-#import "ScanbotCroppingView.h"
 #import "JSONOptionsUtils.h"
+#import "JSONMappings.h"
+#import "ObjectMapper.h"
+#import "ScanbotSDKConfiguration.h"
 
 @import ScanbotSDK;
+
+static BOOL rejectIfUninitialized(RCTPromiseRejectBlock reject) {
+    if (![SharedConfiguration isSDKInitialized]) {
+        reject(@"error", @"ScanbotSDK is not initialized", nil);
+        return TRUE;
+    }
+    return FALSE;
+}
 
 @implementation RNScanbotSDK
 
 RCT_EXPORT_MODULE(ScanbotSDK);
 
-- (CGFloat)validateCompressionQuality:(NSNumber *)compressionQuality {
-	if (!compressionQuality ||
-		[compressionQuality integerValue] < 0 ||
-		[compressionQuality integerValue] > 100) {
-		return kDefaultImageCompressionQuality;
-	} else {
-		return [compressionQuality integerValue];
-	}
-}
+#pragma mark - ReactNative exported interfaces
 
-#pragma mark - Private methods implementations
+RCT_EXPORT_METHOD(initializeSDK:(NSDictionary *)options
+				  success:(RCTPromiseResolveBlock)resolve
+				  failure:(RCTPromiseRejectBlock)reject) {
+    if ([SharedConfiguration isSDKInitialized]) {
+        resolve(@{@"result": @"ScanbotSDK has already been initialized."});
+        return;
+    }
+    
+    [ObjectMapper setEnumerationMapping:@{
+                                          @"orientationLockMode": @{
+                                                  @"NONE": @(SBSDKOrientationLockNone),
+                                                  @"PORTRAIT": @(SBSDKOrientationLockPortrait),
+                                                  @"PORTRAIT_UPSIDE_DOWN": @(SBSDKOrientationLockPortraitUpsideDown),
+                                                  @"LANDSCAPE_LEFT": @(SBSDKOrientationLockLandscapeLeft),
+                                                  @"LANDSCAPE_RIGHT": @(SBSDKOrientationLockLandscapeRight),
+                                                  @"LANDSCAPE": @(SBSDKOrientationLockLandscapeLeft), // TODO
+                                                  },
+                                          @"storageImageFormat": @{
+                                                  @"JPG": @(SBSDKImageFileFormatJPEG),
+                                                  @"PNG": @(SBSDKImageFileFormatPNG)
+                                                  },
+                                          @"cameraPreviewMode": @{
+                                                  @"FILL_IN": @(SBSDKUIVideoContentModeFillIn),
+                                                  @"FIT_IN": @(SBSDKUIVideoContentModeFitIn),
+                                                  }
+                                          }];
 
-- (void)sbsdk_initializeSDK:(NSString *)licenseKey
-			 loggingEnabled:(BOOL)loggingEnabled
-					success:(RCTResponseSenderBlock)success
-					failure:(RCTResponseSenderBlock)failure {
-    BOOL hasLicense = NO;
-    if (licenseKey && ![licenseKey isEqualToString:@""]) {
-        hasLicense = [ScanbotSDK setLicense:licenseKey];
-		if (!hasLicense) {
-			if (failure) {
-				failure(@[@{@"error":@"License key is invalid."}]);
-			}
-			return;
-		}
-    }
-    if (loggingEnabled) {
-        [ScanbotSDK setLoggingEnabled:loggingEnabled];
-        [SharedConfiguration defaultConfiguration].loggingEnabled = loggingEnabled;
-    }
+    ScanbotSDKConfiguration* config = [[ScanbotSDKConfiguration alloc] init];
+    [ObjectMapper populateInstance:config fromDictionary:options];
+    [SharedConfiguration defaultConfiguration].sdkConfiguration = config;
+
     [ScanbotSDK setSharedApplication:[UIApplication sharedApplication]];
-    
+
     NSString *initMessage = @"Scanbot SDK initialized.";
-    RCTLogInfo(@"%@", initMessage);
-    if (!hasLicense) {
+
+    if (config.licenseKey && ![config.licenseKey isEqualToString:@""]) {
+        if (![ScanbotSDK setLicense:config.licenseKey]) {
+            reject(@"error", @"License key is invalid.", nil);
+            return;
+        }
+    } else {
         initMessage = @"Trial mode activated. You can now test all features for 60 seconds.";
-        RCTLogInfo(@"%@", initMessage);
+    }
+
+    if (config.loggingEnabled) {
+        [ScanbotSDK setLoggingEnabled:config.loggingEnabled];
     }
     
-    [SharedConfiguration defaultConfiguration].isSDKInitialized = YES;
-    if (success) {
-        success(@[@{@"result":initMessage}]);
+    switch (config.storageImageFormat) {
+        case SBSDKImageFileFormatJPEG:
+            SBSDKUIPageFileStorage.defaultStorage = [[SBSDKUIPageFileStorage alloc] initWithJPEGFileFormatAndCompressionQuality:config.storageImageQuality];
+            break;
+
+        case SBSDKImageFileFormatPNG:
+            SBSDKUIPageFileStorage.defaultStorage = [[SBSDKUIPageFileStorage alloc] initWithImageFileFormat:SBSDKImageFileFormatPNG];
+            break;
+
+        default:
+            reject(@"error", @"Unsupported image file format", nil);
+            return;
     }
+   
+    RCTLogInfo(@"%@", initMessage);
+    [SharedConfiguration defaultConfiguration].isSDKInitialized = YES;
+    resolve(@{@"result":initMessage});
 }
 
-- (void)sbsdk_isLicenseValid:(RCTResponseSenderBlock)success
-                	 failure:(RCTResponseSenderBlock)failure {
-    if (![SharedConfiguration isSDKInitialized]) {
+RCT_EXPORT_METHOD(isLicenseValid:(RCTPromiseResolveBlock)resolve
+                         failure:(RCTPromiseRejectBlock)reject) {
+    if (rejectIfUninitialized(reject)) {
         return;
     }
     
     RCTLogInfo(@"Validating ScanbotSDK license...");
     
-    NSString *resultMessage = nil;
-	BOOL licenseValid = [ScanbotSDK isLicenseValid];
-	
-    if (licenseValid) {
-        resultMessage = @"ScanbotSDK license is valid";
-	} else {
-        resultMessage = @"ScanbotSDK license is not valid";
-    }
-    RCTLogInfo(@"%@", resultMessage);
-	success(@[@{@"isLicenseValid":@(licenseValid)}]);
+    BOOL licenseValid = [ScanbotSDK isLicenseValid];
+    resolve(@(licenseValid));
 }
 
-- (SBSDKImageFilterType)filterIdFromFilterNameString:(NSString *)filterName {
-    if ([filterName isEqualToString:@"COLOR_ENHANCED"]) return SBSDKImageFilterTypeColor;
-    if ([filterName isEqualToString:@"GRAYSCALE"]) return SBSDKImageFilterTypeGray;
-    if ([filterName isEqualToString:@"BINARIZED"]) return SBSDKImageFilterTypeBinarized;
-	if ([filterName isEqualToString:@"COLOR_DOCUMENT"]) return SBSDKImageFilterTypeColorDocument;
-    return SBSDKImageFilterTypeNone;
-}
-
-- (void)sbsdk_applyImageFilter:(NSString *)filterType
-				  imageFileUri:(NSString *)imageFileUri
-			compressionQuality:(NSNumber *)compressionQuality
-					   success:(RCTResponseSenderBlock)success
-					   failure:(RCTResponseSenderBlock)failure {
-    if (![SharedConfiguration isSDKInitialized]) {
+RCT_EXPORT_METHOD(applyImageFilter:(NSString *)imageFileUri
+                  filter:(NSString *)filterType
+                  success:(RCTPromiseResolveBlock)resolve
+				  failure:(RCTPromiseRejectBlock)reject) {
+    if (rejectIfUninitialized(reject)) {
         return;
     }
-    
+
     NSString *outputImageFilePath = [ImageUtils generateTemporaryDocumentsFilePath:@"jpg"];
     NSURL *inputImageFileURL = [NSURL URLWithString:imageFileUri];
-	NSData *data = [NSData dataWithContentsOfURL:inputImageFileURL];
-	if (!data) {
-		failure(@[@{@"error":@"File not found."}]);
-	} else {
-		[SBSDKImageProcessor filterImage:[UIImage imageWithData:data]
-								  filter:[self filterIdFromFilterNameString:filterType]
-							  completion:^(BOOL finished, NSError * _Nullable error, NSDictionary<NSString *,NSObject *> * _Nullable resultInfo) {
-								  if (finished && !error) {
-									  [ImageUtils saveImage:outputImageFilePath
-													  image:(UIImage *)resultInfo[SBSDKResultInfoDestinationImageKey]
-													quality:[self validateCompressionQuality:compressionQuality]];
-									  success(@[@{@"imageFileUri":[NSURL fileURLWithPath:outputImageFilePath].absoluteString}]);
-								  } else {
-									  failure(@[@{@"error":error.localizedDescription}]);
-								  }
-							  }];
-	}
+    NSData *data = [NSData dataWithContentsOfURL:inputImageFileURL];
+    if (!data) {
+        reject(@"error", @"File not found.", nil);
+    } else {
+        [SBSDKImageProcessor filterImage:[UIImage imageWithData:data]
+                                  filter:filterIdFromFilterNameString(filterType)
+                              completion:^(BOOL finished, NSError * _Nullable error, NSDictionary<NSString *,NSObject *> * _Nullable resultInfo) {
+                                  if (finished && !error) {
+                                      [ImageUtils saveImage:outputImageFilePath
+                                                      image:(UIImage *)resultInfo[SBSDKResultInfoDestinationImageKey]
+                                                    quality:SharedConfiguration.defaultConfiguration.sdkConfiguration.storageImageQuality];
+                                      resolve(@{@"imageFileUri":[NSURL fileURLWithPath:outputImageFilePath].absoluteString});
+                                  } else {
+                                      reject(@"error", error.localizedDescription, error);
+                                  }
+                              }];
+    }
 }
 
-- (void)sbsdk_detectDocument:(NSString *)imageUri
-		  compressionQuality:(NSNumber *)compressionQuality
-					 success:(RCTResponseSenderBlock)success
-					 failure:(RCTResponseSenderBlock)failure {
-    if (![SharedConfiguration isSDKInitialized]) {
+RCT_EXPORT_METHOD(detectDocument:(nonnull NSString *)imageFileUri
+                  success:(RCTPromiseResolveBlock)resolve
+                  failure:(RCTPromiseRejectBlock)reject) {
+    [RNScanbotSDK sbsdk_detectDocument:imageFileUri success:resolve failure:reject];
+}
+
++ (void)sbsdk_detectDocument:(nonnull NSString *)imageFileUri
+               success:(RCTPromiseResolveBlock)resolve
+               failure:(RCTPromiseRejectBlock)reject {
+    if (rejectIfUninitialized(reject)) {
         return;
     }
-    
-    if ([imageUri isKindOfClass:[NSNull class]]) {
-        return;
-    }
-    
-    UIImage *image = [ImageUtils loadImage:imageUri];
+
+    UIImage *image = [ImageUtils loadImage:imageFileUri];
     if (!image) {
-        failure(@[@{@"error":@"Document detection failed. Input image file does not exist."}]);
+        reject(@"error", @"Document detection failed. Input image file does not exist.", nil);
     } else {
         SBSDKDocumentDetector *detector = [SBSDKDocumentDetector new];
         SBSDKDocumentDetectorResult *result = [detector detectDocumentPolygonOnImage:image
@@ -158,74 +177,81 @@ RCT_EXPORT_MODULE(ScanbotSDK);
                                     if (finished && !error) {
                                         [ImageUtils saveImage:outputImageFilePath
                                                         image:(UIImage *)resultInfo[SBSDKResultInfoDestinationImageKey]
-                                                      quality:[self validateCompressionQuality:compressionQuality]];
-                                        NSDictionary *callbackResult = @{@"imageFileUri":outputImageURL.absoluteString,
+                                                      quality:SharedConfiguration.defaultConfiguration.sdkConfiguration.storageImageQuality];
+                                        NSDictionary *callbackResult = @{@"documentImageFileUri":outputImageURL.absoluteString,
                                                                          @"detectionResult":[result.polygon detectionStatusString],
                                                                          @"polygon":[result.polygon polygonPoints]};
-                                        success(@[callbackResult]);
+                                        resolve(callbackResult);
                                     } else {
-                                        failure(@[@{@"error":error.localizedDescription}]);
+                                        reject(@"error", error.localizedDescription, nil);
                                     }
                                 }];
         } else {
-            NSString *detectionStatusString = [[SBSDKPolygon new] detectionStatusStringFromSBSDKStatus:SBSDKDocumentDetectionStatusError_NothingDetected];
-            NSDictionary *callbackResult = @{@"imageFileUri":[NSNull null],
-                                             @"detectionResult":detectionStatusString,
-                                             @"polygon":[NSArray array]};
-            success(@[callbackResult]);
+            resolve(@{@"detectionResult":DetectionResultAsJSONStringValue(SBSDKDocumentDetectionStatusError_NothingDetected)});
         }
     }
 }
 
-- (void)sbsdk_getOCRConfigs:(RCTResponseSenderBlock)success
-                    failure:(RCTResponseSenderBlock)failure {
+RCT_EXPORT_METHOD(getOCRConfigs:(RCTPromiseResolveBlock)resolve
+                        failure:(RCTPromiseRejectBlock)reject) {
+    if (rejectIfUninitialized(reject)) {
+        return;
+    }
     NSMutableDictionary *resultDict = [NSMutableDictionary dictionary];
     NSURL *languageDataPathURL = [NSURL fileURLWithPath: [SBSDKOpticalTextRecognizer languageDataPath]];
     resultDict[@"languageDataPath"] = [languageDataPathURL absoluteString];
     resultDict[@"installedLanguages"] = [SBSDKOpticalTextRecognizer installedLanguages];
-    success(@[resultDict]);
+    resolve(resultDict);
 }
 
-- (void)sbsdk_performOCR:(NSArray *)imageFileUris
-			   languages:(NSArray *)languages
-			outputFormat:(NSString *)outputFormat
-				 success:(RCTResponseSenderBlock)success
-				 failure:(RCTResponseSenderBlock)failure {
-    if (![SharedConfiguration isSDKInitialized]) {
+RCT_EXPORT_METHOD(performOCR:(nonnull NSArray<NSString *> *)imageFileUris
+                  languages:(nonnull NSArray<NSString *> *)languages
+                  options:(nonnull NSDictionary *)options
+                  success:(RCTPromiseResolveBlock)resolve
+				  failure:(RCTPromiseRejectBlock)reject) {
+    if (rejectIfUninitialized(reject)) {
         return;
     }
-    
+
+    JSONOptionsUtils *optionsUtils = [[JSONOptionsUtils alloc] initWithOptions:options];
+	NSString *outputFormat = [optionsUtils stringValueForOption:@"outputFormat"
+												   defaultValue:@"PLAIN_TEXT"];
+
     if (!languages) {
-        failure(@[@{@"error":@"At least one language must be specified."}]);
+        reject(@"error", @"At least one language must be specified.", nil);
         return;
     }
     if (!imageFileUris) {
-        failure(@[@{@"error":@"At least one image must be present."}]);
+        reject(@"error", @"At least one image must be present.", nil);
         return;
     }
-    
+
     NSArray *missingLanguages = [OCRUtils checkMissingLanguages:languages];
     if (missingLanguages.count > 0) {
-        failure(@[@{@"error":[OCRUtils missingLanguagesStringFromArray:missingLanguages]}]);
+        reject(@"error", [OCRUtils missingLanguagesStringFromArray:missingLanguages], nil);
         return;
     }
-    
+
     NSURL *outputPDFURL = nil;
     if ([outputFormat isEqualToString:@"PDF_FILE"] || [outputFormat isEqualToString:@"FULL_OCR_RESULT"]) {
         outputPDFURL = [NSURL fileURLWithPath:[ImageUtils generateTemporaryDocumentsFilePath:@"pdf"]];
     }
-    
+
     NSString *langString = languages.firstObject;
     for (NSInteger index = 1; index < languages.count; ++index) {
         langString = [NSString stringWithFormat:@"%@+%@", langString, languages[index]];
     }
     
-    [SBSDKOpticalTextRecognizer recognizeText:[ImageUtils imageStorageFromFilesList:imageFileUris]
-                             copyImageStorage:YES
+    SBSDKIndexedImageStorage *tempStorage = [ImageUtils imageStorageFromFilesList:imageFileUris];
+
+    [SBSDKOpticalTextRecognizer recognizeText:tempStorage
+                             copyImageStorage:NO
                                      indexSet:nil
                                languageString:langString
                                  pdfOutputURL:outputPDFURL
                                    completion:^(BOOL finished, NSError *error, NSDictionary *resultInfo) {
+                                       // cleaning up the temp storage dir!
+                                       [tempStorage removeAllImages];
                                        if (finished && !error) {
                                            SBSDKOCRResult *result = resultInfo[SBSDKResultInfoOCRResultsKey];
                                            NSMutableDictionary *resultDict = [NSMutableDictionary dictionary];
@@ -237,195 +263,257 @@ RCT_EXPORT_MODULE(ScanbotSDK);
                                                resultDict[@"plainText"] = result.recognizedText;
                                                resultDict[@"pdfFileUri"] = outputPDFURL.absoluteString;
                                            }
-                                           success(@[resultDict]);
+                                           resolve(resultDict);
                                        } else {
-                                           failure(@[@{@"error":error.localizedDescription}]);
+                                           reject(@"error", error.localizedDescription, nil);
                                        }
                                    }];
 }
 
-- (void)sbsdk_createPDF:(NSArray *)imageFileUris
-				success:(RCTResponseSenderBlock)success
-				failure:(RCTResponseSenderBlock)failure {
-    if (![SharedConfiguration isSDKInitialized]) {
+RCT_EXPORT_METHOD(createPDF:(NSArray *)imageFileUris
+                  success:(RCTPromiseResolveBlock)resolve
+				  failure:(RCTPromiseRejectBlock)reject) {
+    if (rejectIfUninitialized(reject)) {
         return;
     }
     
     [ImageUtils recreateTempDirectoryIfNeeded];
     if (imageFileUris.count == 0) {
-        failure(@[@{@"error":@"At least one image must be present."}]);
+        reject(@"error", @"At least one image must be present.", nil);
         return;
     }
-    
-    NSIndexSet *indexSet = [NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, imageFileUris.count)];
-    SBSDKPDFRendererPageSize sdkPageSize = SBSDKPDFRendererPageSizeAuto;
     
     NSString *outputPdfFilePath = [ImageUtils generateTemporaryDocumentsFilePath:@"pdf"];
     NSURL *pdfOutputURL = [NSURL fileURLWithPath:outputPdfFilePath];
     
-    [SBSDKPDFRenderer renderImageStorage:[ImageUtils imageStorageFromFilesList:imageFileUris]
+    SBSDKIndexedImageStorage *tempStorage = [ImageUtils imageStorageFromFilesList:imageFileUris];
+    
+    [SBSDKPDFRenderer renderImageStorage:tempStorage
                         copyImageStorage:NO
-                                indexSet:indexSet
-                            withPageSize:sdkPageSize
+                                indexSet:nil
+                            withPageSize:SBSDKPDFRendererPageSizeAuto
                                   output:pdfOutputURL
                        completionHandler:^(BOOL finished, NSError *error, NSDictionary *resultInfo) {
-                           dispatch_async(dispatch_get_main_queue(), ^{
-                               if (finished && !error) {
-                                   success(@[@{@"pdfFileUri":pdfOutputURL.absoluteString}]);
-                               } else {
-                                   failure(@[@{@"error":error.localizedDescription}]);
-                               }
-                           });
+                           // cleaning up the temp storage dir!
+                           [tempStorage removeAllImages];
+                           if (finished && !error) {
+                               resolve(@{@"pdfFileUri":pdfOutputURL.absoluteString});
+                           } else {
+                               reject(@"error", error.localizedDescription, nil);
+                           }
                        }];
+}
+
+RCT_EXPORT_METHOD(writeTIFF:(NSArray *)imageFileUris
+                  options:(NSDictionary *)options
+                  success:(RCTPromiseResolveBlock)resolve
+                  failure:(RCTPromiseRejectBlock)reject) {
+    if (rejectIfUninitialized(reject)) {
+        return;
+    }
     
+    NSMutableArray* uris = [NSMutableArray arrayWithCapacity:[imageFileUris count]];
+    for (NSString* uriStr in imageFileUris) {
+        [uris addObject:[NSURL URLWithString:uriStr]];
+    }
+    
+    NSURL *outputTiffFileUri = [NSURL fileURLWithPath:[ImageUtils generateTemporaryDocumentsFilePath:@"tiff"]];
+    
+    JSONOptionsUtils *optionsUtils = [[JSONOptionsUtils alloc] initWithOptions:options];
+    BOOL binarized = [optionsUtils boolValueForOption:@"oneBitEncoded" defaultValue:FALSE];
+    
+    BOOL success = binarized
+        ? [SBSDKTIFFImageWriter writeBinarizedMultiPageTIFFFromImageURLs:uris fileURL:outputTiffFileUri]
+        : [SBSDKTIFFImageWriter writeMultiPageTIFFFromImageURLs:uris fileURL:outputTiffFileUri];
+
+    if (!success) {
+        reject(@"error", @"TIFF creation failed", nil);
+    }
+    
+    resolve(@{@"tiffFileUri":outputTiffFileUri.absoluteString});
 }
 
-- (void)sbsdk_rotateImage:(NSString *)imageFileUri
-				  degrees:(NSNumber *)degrees
-	   compressionQuality:(NSNumber *)compressionQuality
-				  success:(RCTResponseSenderBlock)success
-				  failure:(RCTResponseSenderBlock)failure {
-	if (![SharedConfiguration isSDKInitialized]) {
-		return;
-	}
-	
-	[ImageUtils recreateTempDirectoryIfNeeded];
-	NSString *outputImageFilePath = [ImageUtils generateTemporaryDocumentsFilePath:@"jpg"];
-	
-	UIImage *inputImage = [ImageUtils loadImage:imageFileUri];
-	if (inputImage) {
-		UIImage *outputImage = [inputImage sbsdk_imageRotatedByDegrees:[degrees integerValue]];
-		if ([ImageUtils saveImage:outputImageFilePath
-							image:outputImage
-						  quality:[self validateCompressionQuality:compressionQuality]]) {
-			success(@[@{@"imageFileUri":[NSURL fileURLWithPath:outputImageFilePath].absoluteString}]);
-		} else {
-			failure(@[@{@"error":@"Save image failed."}]);
-		}
-	} else {
-		failure(@[@{@"error":@"Image file not found."}]);
-	}
-}
+RCT_EXPORT_METHOD(rotateImage:(NSString *)imageFileUri
+                  degrees:(nonnull NSNumber *)degrees
+				  success:(RCTPromiseResolveBlock)resolve
+				  failure:(RCTPromiseRejectBlock)reject) {
+    if (rejectIfUninitialized(reject)) {
+        return;
+    }
 
-- (void)sbsdk_cleanup:(RCTResponseSenderBlock)success
-			  failure:(RCTResponseSenderBlock)failure {
-    NSError *cleanupError = [ImageUtils removeAllFilesFromTemporaryDocumentsDirectory];
-    if (!cleanupError) {
-        success(@[@{@"result":@"ok"}]);
+    [ImageUtils recreateTempDirectoryIfNeeded];
+    NSString *outputImageFilePath = [ImageUtils generateTemporaryDocumentsFilePath:@"jpg"];
+    
+    UIImage *inputImage = [ImageUtils loadImage:imageFileUri];
+    if (inputImage) {
+        UIImage *outputImage = [inputImage sbsdk_imageRotatedByDegrees:[degrees doubleValue]];
+        if ([ImageUtils saveImage:outputImageFilePath
+                            image:outputImage
+                          quality:SharedConfiguration.defaultConfiguration.sdkConfiguration.storageImageQuality]) {
+            resolve(@{@"imageFileUri":[NSURL fileURLWithPath:outputImageFilePath].absoluteString});
+        } else {
+            reject(@"error", @"Save image failed.", nil);
+        }
     } else {
-        failure(@[@{@"error":cleanupError.localizedDescription}]);
+        reject(@"error", @"Image file not found.", nil);
     }
 }
 
-#pragma mark - ReactNative exported interfaces
 
-RCT_EXPORT_METHOD(initializeSDK:(NSDictionary *)options
-				  success:(RCTResponseSenderBlock)success
-				  failure:(RCTResponseSenderBlock)failure) {
-	JSONOptionsUtils *optionsUtils = [[JSONOptionsUtils alloc] initWithOptions:options];
-	NSString *licenseKey = [optionsUtils stringValueForOption:@"licenseKey"
-												 defaultValue:@""];
-	BOOL loggingEnabled = [optionsUtils boolValueForOption:@"loggingEnabled"
-											  defaultValue:NO];
-    [self sbsdk_initializeSDK:licenseKey
-               loggingEnabled:loggingEnabled
-					  success:success
-					  failure:failure];
+RCT_EXPORT_METHOD(createPage:(NSString*)imageFileUri
+                  withResolver:(RCTPromiseResolveBlock)resolve
+                  withRejecter:(RCTPromiseRejectBlock)reject) {
+    if (rejectIfUninitialized(reject)) {
+        return;
+    }
+
+    UIImage* image = [ImageUtils loadImage:imageFileUri];
+    if (!image) {
+        reject(@"error", @"Image file not found.", nil);
+    }
+    image = [image sbsdk_imageWithFixedOrientation];
+    NSUUID* pageId = [SBSDKUIPageFileStorage.defaultStorage addImage:image];
+    SBSDKUIPage* page = [[SBSDKUIPage alloc] initWithPageFileID:pageId polygon:nil];
+    resolve(dictionaryFromPage(page));
 }
 
-RCT_EXPORT_METHOD(isLicenseValid:(RCTResponseSenderBlock)success
-                         failure:(RCTResponseSenderBlock)failure) {
-    [self sbsdk_isLicenseValid:success
-                       failure:failure];
+RCT_EXPORT_METHOD(detectDocumentOnPage:(NSDictionary*)pageDict
+                  withResolver:(RCTPromiseResolveBlock)resolve
+                  withRejecter:(RCTPromiseRejectBlock)reject) {
+    if (rejectIfUninitialized(reject)) {
+        return;
+    }
+
+    SBSDKUIPage* page = pageFromDictionary(pageDict);
+    [page detectDocument:true];
+    resolve(dictionaryFromPage(page));
 }
 
-RCT_EXPORT_METHOD(applyImageFilter:(NSDictionary *)options
-                  success:(RCTResponseSenderBlock)success
-				  failure:(RCTResponseSenderBlock)failure) {
-	JSONOptionsUtils *optionsUtils = [[JSONOptionsUtils alloc] initWithOptions:options];
-	NSString *filterType = [optionsUtils stringValueForOption:@"filterType"
-												 defaultValue:@""];
-	NSString *imageFileUri = [optionsUtils stringValueForOption:@"imageFileUri"
-												   defaultValue:@""];
-	NSNumber *imageCompressionQuality = @([optionsUtils integerValueForOption:@"imageCompressionQuality"
-																 defaultValue:kDefaultImageCompressionQuality]);
-	[self sbsdk_applyImageFilter:filterType
-                    imageFileUri:imageFileUri
-			  compressionQuality:imageCompressionQuality
-						 success:success
-						 failure:failure];
+RCT_EXPORT_METHOD(applyImageFilterOnPage:(NSDictionary*)pageDict
+                                  filter:(NSString *)filterType
+                            withResolver:(RCTPromiseResolveBlock)resolve
+                            withRejecter:(RCTPromiseRejectBlock)reject) {
+    if (rejectIfUninitialized(reject)) {
+        return;
+    }
+    
+    SBSDKUIPage* page = pageFromDictionary(pageDict);
+    page.filter = filterIdFromFilterNameString(filterType);
+    resolve(dictionaryFromPage(page));
 }
 
-RCT_EXPORT_METHOD(detectDocument:(NSDictionary *)options
-                  success:(RCTResponseSenderBlock)success
-				  failure:(RCTResponseSenderBlock)failure) {
-	JSONOptionsUtils *optionsUtils = [[JSONOptionsUtils alloc] initWithOptions:options];
-	NSString *imageFileUri = [optionsUtils stringValueForOption:@"imageFileUri"
-												   defaultValue:nil];
-	NSNumber *imageCompressionQuality = @([optionsUtils integerValueForOption:@"imageCompressionQuality"
-																 defaultValue:kDefaultImageCompressionQuality]);
-    [self sbsdk_detectDocument:imageFileUri
-			compressionQuality:imageCompressionQuality
-					   success:success
-					   failure:failure];
+RCT_EXPORT_METHOD(rotatePage:(NSDictionary*)pageDict
+                  times:(nonnull NSNumber *)times
+                  withResolver:(RCTPromiseResolveBlock)resolve
+                  withRejecter:(RCTPromiseRejectBlock)reject) {
+    if (rejectIfUninitialized(reject)) {
+        return;
+    }
+    
+    SBSDKUIPage* page = pageFromDictionary(pageDict);
+    [page rotateClockwise:-[times integerValue]];
+    resolve(dictionaryFromPage(page));
 }
 
-RCT_EXPORT_METHOD(getOCRConfigs:(RCTResponseSenderBlock)success
-                        failure:(RCTResponseSenderBlock)failure) {
-    [self sbsdk_getOCRConfigs:success
-                      failure:failure];
+RCT_EXPORT_METHOD(getFilteredDocumentPreviewUri:(NSDictionary*)pageDict
+                                         filter:(NSString *)filterType
+                                   withResolver:(RCTPromiseResolveBlock)resolve
+                                   withRejecter:(RCTPromiseRejectBlock)reject) {
+    if (rejectIfUninitialized(reject)) {
+        return;
+    }
+
+    SBSDKUIPage* page = pageFromDictionary(pageDict);
+    SBSDKImageFilterType filter = filterIdFromFilterNameString(filterType);
+    resolve(uriWithMinihash([page documentPreviewImageURLUsingFilter:filter]));
 }
 
-RCT_EXPORT_METHOD(performOCR:(NSDictionary *)options
-                  success:(RCTResponseSenderBlock)success
-				  failure:(RCTResponseSenderBlock)failure) {
-	JSONOptionsUtils *optionsUtils = [[JSONOptionsUtils alloc] initWithOptions:options];
-	NSArray *imageFileUris = [optionsUtils arrayValueForOption:@"imageFileUris"
-												  defaultValue:@[]];
-	NSArray *languages = [optionsUtils arrayValueForOption:@"languages"
-											  defaultValue:@[]];
-	NSString *outputFormat = [optionsUtils stringValueForOption:@"outputFormat"
-												   defaultValue:@"PLAIN_TEXT"];
-    [self sbsdk_performOCR:imageFileUris
-                 languages:languages
-              outputFormat:outputFormat
-				   success:success
-				   failure:failure];
+/*
+ * ! getStoredPages() method dropped, due to potential abuse or wrong usage !
+ * It provides page objects without meta data (polygon, filter, etc),
+ * which may cause inconsistency (especially in our iOS SDK, e.g. rotatePage() method)!
+RCT_EXPORT_METHOD(getStoredPages:(RCTPromiseResolveBlock)resolve
+                  withRejecter:(RCTPromiseRejectBlock)reject) {
+    if (rejectIfUninitialized(reject)) {
+        return;
+    }
+
+    NSArray<NSUUID *>* pageIds = [SBSDKUIPageFileStorage.defaultStorage allPageFileIDs];
+    NSMutableArray<NSDictionary*>* pages = [NSMutableArray arrayWithCapacity:[pageIds count]];
+    
+    for (NSUUID* pageId in pageIds)
+    {
+        [pages addObject:dictionaryFromPage([[SBSDKUIPage alloc] initWithPageFileID:pageId polygon:nil])];
+    }
+    resolve(pages);
+}
+*/
+
+RCT_EXPORT_METHOD(removePage:(NSDictionary*)pageDict
+                  withResolver:(RCTPromiseResolveBlock)resolve
+                  withRejecter:(RCTPromiseRejectBlock)reject) {
+    if (rejectIfUninitialized(reject)) {
+        return;
+    }
+
+    SBSDKUIPage* page = pageFromDictionary(pageDict);
+    [SBSDKUIPageFileStorage.defaultStorage removePageFileID:page.pageFileUUID];
+    resolve(nil);
 }
 
-RCT_EXPORT_METHOD(createPDF:(NSDictionary *)options
-                  success:(RCTResponseSenderBlock)success
-				  failure:(RCTResponseSenderBlock)failure) {
-	JSONOptionsUtils *optionsUtils = [[JSONOptionsUtils alloc] initWithOptions:options];
-	NSArray *imageFileUris = [optionsUtils arrayValueForOption:@"imageFileUris"
-												  defaultValue:@[]];
-	[self sbsdk_createPDF:imageFileUris
-				  success:success
-				  failure:failure];
+RCT_EXPORT_METHOD(setDocumentImage:(NSDictionary*)pageDict
+                  imageFileUri:(NSString*)imageFileUri
+                  withResolver:(RCTPromiseResolveBlock)resolve
+                  withRejecter:(RCTPromiseRejectBlock)reject) {
+    if (rejectIfUninitialized(reject)) {
+        return;
+    }
+
+    SBSDKUIPage* page = pageFromDictionary(pageDict);
+    NSError* error = nil;
+    if ([SBSDKUIPageFileStorage.defaultStorage setImage:[ImageUtils loadImage:imageFileUri]
+                                  forExistingPageFileID:page.pageFileUUID
+                                           pageFileType:SBSDKUIPageFileTypeDocument
+                                                  error:&error] && !error) {
+        resolve(dictionaryFromPage(page));
+    } else {
+        reject(@"error", @"Could not set document image", error);
+    }
 }
 
-RCT_EXPORT_METHOD(cleanup:(RCTResponseSenderBlock)success
-				  failure:(RCTResponseSenderBlock)failure) {
-    [self sbsdk_cleanup:success
-				failure:failure];
+RCT_EXPORT_METHOD(cleanup:(RCTPromiseResolveBlock)resolve
+                  failure:(RCTPromiseRejectBlock)reject) {
+    if (rejectIfUninitialized(reject)) {
+        return;
+    }
+    
+    [SBSDKUIPageFileStorage.defaultStorage removeAll];
+    NSError *cleanupError = [ImageUtils removeAllFilesFromTemporaryDocumentsDirectory];
+    if (!cleanupError) {
+        resolve(nil);
+    } else {
+        reject(@"error", cleanupError.localizedDescription, cleanupError);
+    }
 }
 
-RCT_EXPORT_METHOD(rotateImage:(NSDictionary *)options
-				  success:(RCTResponseSenderBlock)success
-				  failure:(RCTResponseSenderBlock)failure) {
-	JSONOptionsUtils *optionsUtils = [[JSONOptionsUtils alloc] initWithOptions:options];
-	NSString *imageFileUri = [optionsUtils stringValueForOption:@"imageFileUri"
-												   defaultValue:nil];
-	NSNumber *degrees = @([optionsUtils integerValueForOption:@"degrees"
-												 defaultValue:0]);
-	NSNumber *imageCompressionQuality = @([optionsUtils integerValueForOption:@"imageCompressionQuality"
-																 defaultValue:kDefaultImageCompressionQuality]);
-	[self sbsdk_rotateImage:imageFileUri
-					degrees:degrees
-		 compressionQuality:imageCompressionQuality
-					success:success
-					failure:failure];
-}
+RCT_EXPORT_METHOD(recognizeMrz:(nonnull NSString *)imageFileUri
+                  success:(RCTPromiseResolveBlock)resolve
+                  failure:(RCTPromiseRejectBlock)reject) {
+    if (rejectIfUninitialized(reject)) {
+        return;
+    }
 
+    UIImage *image = [ImageUtils loadImage:imageFileUri];
+    if (!image) {
+        reject(@"error", @"MRZ recognition failed. Input image file does not exist.", nil);
+        return;
+    }
+
+    SBSDKMachineReadableZoneRecognizer *recognizer = [SBSDKMachineReadableZoneRecognizer new];
+    SBSDKMachineReadableZoneRecognizerResult *mrzResult = [recognizer recognizePersonalIdentityFromImage:image];
+
+    NSDictionary* result = MRZRecognizerResultAsDictionary(mrzResult);
+    resolve(result);
+}
 
 @end

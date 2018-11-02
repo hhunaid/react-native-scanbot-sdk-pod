@@ -8,12 +8,12 @@ import com.facebook.react.ReactPackage;
 import com.facebook.react.bridge.NativeModule;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.uimanager.ViewManager;
-import com.facebook.react.bridge.JavaScriptModule;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+
+import io.scanbot.sdk.reactnative.ui.DefaultUiModule;
 
 public class ScanbotSDKPackage implements ReactPackage {
 
@@ -23,17 +23,14 @@ public class ScanbotSDKPackage implements ReactPackage {
         List<NativeModule> modules = new ArrayList<>();
 
         modules.add(new ScanbotSDKReactNative(reactContext));
-        modules.add(new ScanbotCroppingViewModule(reactContext));
+        modules.add(new DefaultUiModule(reactContext));
 
         return modules;
     }
 
     @Override
     public List<ViewManager> createViewManagers(ReactApplicationContext reactContext) {
-        return Arrays.<ViewManager>asList(
-                new ScanbotCameraViewManager(),
-                new ScanbotCroppingViewManager()
-        );
+        return Collections.<ViewManager>emptyList();
     }
 
 }

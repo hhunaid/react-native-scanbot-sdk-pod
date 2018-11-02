@@ -1,14 +1,18 @@
 apply plugin: 'com.android.library'
 
+def androidSupportVersion = '27.1.0'
+
 android {
-    compileSdkVersion 25
-    buildToolsVersion '25.0.3'
+    compileSdkVersion = 27
+    buildToolsVersion = "27.0.3"
+    androidSupportVersion = androidSupportVersion
 
     defaultConfig {
         minSdkVersion 16
-        targetSdkVersion 25
+        targetSdkVersion 27
         versionCode 1
         versionName "1.0"
+        multiDexEnabled true
     }
     buildTypes {
         release {
@@ -24,6 +28,13 @@ android {
     dexOptions {
         javaMaxHeapSize '8g'
     }
+    packagingOptions {
+        exclude 'META-INF/LICENSE.txt'
+        exclude 'META-INF/LICENSE'
+        exclude 'META-INF/NOTICE.txt'
+        exclude 'META-INF/NOTICE'
+        exclude 'META-INF/DEPENDENCIES'
+    }
 }
 
 dependencies {
@@ -31,17 +42,15 @@ dependencies {
 
     compile 'com.facebook.react:react-native:+'
 
-    //compile 'com.android.support:design:25.3.1'
-    //compile 'com.android.support:appcompat-v7:25.3.1'
-    compile 'com.android.support:appcompat-v7:24+'
+    compile "com.android.support:support-annotations:$androidSupportVersion"
+    compile "com.android.support:support-v4:$androidSupportVersion"
+    compile "com.android.support:appcompat-v7:$androidSupportVersion"
 
-    compile ('io.scanbot:sdk-package-2:1.26.5') {
+    compile ('io.scanbot:sdk-package-ui:1.33.3') {
+        exclude group: 'com.intellij', module: 'annotations'
+    }
+    compile ('io.scanbot:sdk-package-4:1.33.3') {
         exclude group: 'com.github.rjeschke', module: 'neetutils-base'
-        exclude group: 'org.apache.log4j', module: 'scanbotsdk-base'
-
-        // Exclude google play-services-vision and zxing libs to be compatible to other 3rd party RN modules which are based on zxing.
-        // TODO Eddy: Remove both excludes as soon as we have implemented our Scanbot SDK QR/barcode scanner functionality in this module.
-        exclude group: 'com.google.android.gms', module: 'play-services-vision'
-        exclude group: 'com.google.zxing'
+        exclude group: 'com.intellij', module: 'annotations'
     }
 }

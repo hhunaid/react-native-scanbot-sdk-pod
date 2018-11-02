@@ -4,7 +4,7 @@
 //  Copyright (c) 2017 doo GmbH. All rights reserved.
 //
 
-@import ScanbotSDK;
+#import <ScanbotSDK/ScanbotSDK.h>
 
 static NSString *const sbsdkTmpFolder = @"sbsdk-temp";
 
@@ -20,6 +20,6 @@ static NSString *const sbsdkTmpFolder = @"sbsdk-temp";
 + (NSError *)removeAllFilesFromTemporaryDocumentsDirectory;
 + (NSString *)tempDirectoryPath;
 + (BOOL)imageFileExists:(NSString *)imageFileUri;
-+ (SBSDKImageStorage *)imageStorageFromFilesList:(NSArray <NSString *> *)imageFilePaths;
++ (SBSDKIndexedImageStorage *)imageStorageFromFilesList:(NSArray <NSString *> *)imageFilePaths;
 
 @end

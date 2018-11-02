@@ -7,9 +7,14 @@ package io.scanbot.sdk.reactnative;
 import android.app.Activity;
 import android.content.Context;
 import android.content.res.AssetManager;
+import android.net.Uri;
 import android.os.Environment;
 
 import java.io.*;
+import java.math.BigInteger;
+import java.nio.ByteBuffer;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -52,8 +57,8 @@ public final class FileUtils {
     }
 
 
-    public static void cleanUpTempScanbotDirectory(final Activity activity) throws IOException {
-        final File tempDir = getTempScanbotDirectory(activity);
+    public static void cleanUpTempScanbotDirectory(final Context context) throws IOException {
+        final File tempDir = getTempScanbotDirectory(context);
         cleanDirectory(tempDir);
     }
 
@@ -70,6 +75,47 @@ public final class FileUtils {
         }
 
         return result;
+    }
+
+    static String uriWithHash(Uri fileUri) {
+        String path = fileUri.getPath();
+        File file = new File(path);
+        RandomAccessFile fileReader = null;
+        try {
+            MessageDigest digest = MessageDigest.getInstance("MD5");
+            ByteBuffer lengthBuffer = ByteBuffer.allocate(8);
+            long length = file.length();
+            lengthBuffer.putLong(length);
+            digest.update(lengthBuffer.array());
+
+            fileReader = new RandomAccessFile(file, "r");
+            byte[] buffer = new byte[32768];
+            if (length > buffer.length) {
+                fileReader.seek((length - buffer.length) / 2);
+            }
+            fileReader.read(buffer);
+            digest.update(buffer);
+
+            String hash = new BigInteger(1, digest.digest()).toString(16);
+            return fileUri.buildUpon().appendQueryParameter("minihash", hash).build().toString();
+
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (fileReader != null) {
+                try {
+                    fileReader.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        return fileUri.toString();
     }
 
 //    public static String pathForAsset(String asset, Context context) {
@@ -103,7 +149,7 @@ public final class FileUtils {
         try {
             OutputStream out = new FileOutputStream(dst);
             try {
-                byte[] buf = new byte[1024];
+                byte[] buf = new byte[65536];
                 int len;
                 while ((len = in.read(buf)) > 0) {
                     out.write(buf, 0, len);

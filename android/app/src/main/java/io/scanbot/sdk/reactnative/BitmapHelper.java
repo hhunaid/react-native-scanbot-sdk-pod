@@ -22,11 +22,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static io.scanbot.sdk.reactnative.ScanbotConstants.DEFAULT_COMPRESSION_QUALITY;
+import io.scanbot.sdk.process.ImageFilterType;
 
 public class BitmapHelper {
 
     private static final Map<String, Integer> imageFilterMapping = new HashMap<String, Integer>();
+
+    private static final Map<String, ImageFilterType> imageFilterTypeMapping = new HashMap<>();
 
     static {
         imageFilterMapping.put("NONE", ContourDetector.IMAGE_FILTER_NONE);
@@ -34,6 +36,18 @@ public class BitmapHelper {
         imageFilterMapping.put("GRAYSCALE", ContourDetector.IMAGE_FILTER_GRAY);
         imageFilterMapping.put("BINARIZED", ContourDetector.IMAGE_FILTER_BINARIZED);
         imageFilterMapping.put("COLOR_DOCUMENT", ContourDetector.IMAGE_FILTER_COLOR_DOCUMENT);
+        imageFilterMapping.put("PURE_BINARIZED", ContourDetector.IMAGE_FILTER_PURE_BINARIZED);
+        imageFilterMapping.put("BACKGROUND_CLEAN", ContourDetector.IMAGE_FILTER_BACKGROUND_CLEAN);
+        imageFilterMapping.put("BLACK_AND_WHITE", ContourDetector.IMAGE_FILTER_BLACK_AND_WHITE);
+
+        imageFilterTypeMapping.put("NONE", ImageFilterType.NONE);
+        imageFilterTypeMapping.put("BINARIZED", ImageFilterType.BINARIZED);
+        imageFilterTypeMapping.put("COLOR_DOCUMENT", ImageFilterType.COLOR_DOCUMENT);
+        imageFilterTypeMapping.put("COLOR_ENHANCED", ImageFilterType.COLOR_ENHANCED);
+        imageFilterTypeMapping.put("GRAYSCALE", ImageFilterType.GRAYSCALE);
+        imageFilterTypeMapping.put("PURE_BINARIZED", ImageFilterType.PURE_BINARIZED);
+        imageFilterTypeMapping.put("BACKGROUND_CLEAN", ImageFilterType.BACKGROUND_CLEAN);
+        imageFilterTypeMapping.put("BLACK_AND_WHITE", ImageFilterType.BLACK_AND_WHITE);
     }
 
     public static Bitmap loadBitmap(final String imageFilePath) throws IOException {
@@ -61,13 +75,9 @@ public class BitmapHelper {
     }
 
     public static File storeImageAsFile(final Bitmap image, final int quality, final Context context) throws IOException {
-        int resultQuality = quality;
-        if (resultQuality > 100 || resultQuality < 1) {
-            resultQuality = DEFAULT_COMPRESSION_QUALITY;
-        }
         final File pictureFile = FileUtils.generateRandomTempScanbotFile("jpg", context);
         final FileOutputStream fos = new FileOutputStream(pictureFile);
-        image.compress(Bitmap.CompressFormat.JPEG, resultQuality, fos);
+        image.compress(Bitmap.CompressFormat.JPEG, quality, fos);
         fos.close();
         return pictureFile;
     }
@@ -86,6 +96,13 @@ public class BitmapHelper {
     public static int jsImageFilterToSdkFilter(final String imageFilter) {
         if (imageFilterMapping.containsKey(imageFilter)) {
             return imageFilterMapping.get(imageFilter);
+        }
+        throw new IllegalArgumentException("Unsupported imageFilter: " + imageFilter);
+    }
+
+    public static ImageFilterType imageFilterTypeFromString(String imageFilter) {
+        if (imageFilterTypeMapping.containsKey(imageFilter)) {
+            return imageFilterTypeMapping.get(imageFilter);
         }
         throw new IllegalArgumentException("Unsupported imageFilter: " + imageFilter);
     }
@@ -116,7 +133,7 @@ public class BitmapHelper {
         }
     }
 
-    public static Bitmap rotateBitmap(Bitmap source, int degrees) {
+    public static Bitmap rotateBitmap(Bitmap source, float degrees) {
         Matrix matrix = new Matrix();
         matrix.postRotate(degrees);
         return Bitmap.createBitmap(source, 0, 0, source.getWidth(), source.getHeight(), matrix, true);

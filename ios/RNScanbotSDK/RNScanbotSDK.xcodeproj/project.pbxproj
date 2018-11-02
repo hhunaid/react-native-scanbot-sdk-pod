@@ -13,16 +13,15 @@
 		C22395981F505DD2000F0E6D /* SBSDKPageAnalyzerResult+JSON.m in Sources */ = {isa = PBXBuildFile; fileRef = C223957F1F505DD2000F0E6D /* SBSDKPageAnalyzerResult+JSON.m */; };
 		C22395991F505DD2000F0E6D /* SBSDKPolygon+JSON.m in Sources */ = {isa = PBXBuildFile; fileRef = C22395811F505DD2000F0E6D /* SBSDKPolygon+JSON.m */; };
 		C223959A1F505DD2000F0E6D /* UIColor+JSON.m in Sources */ = {isa = PBXBuildFile; fileRef = C22395831F505DD2000F0E6D /* UIColor+JSON.m */; };
-		C223959B1F505DD2000F0E6D /* ScanbotCameraView.m in Sources */ = {isa = PBXBuildFile; fileRef = C22395851F505DD2000F0E6D /* ScanbotCameraView.m */; };
-		C223959C1F505DD2000F0E6D /* ScanbotCamerViewManager.m in Sources */ = {isa = PBXBuildFile; fileRef = C22395871F505DD2000F0E6D /* ScanbotCamerViewManager.m */; };
-		C223959D1F505DD2000F0E6D /* ScanbotCroppingView.m in Sources */ = {isa = PBXBuildFile; fileRef = C22395891F505DD2000F0E6D /* ScanbotCroppingView.m */; };
-		C223959E1F505DD2000F0E6D /* ScanbotCroppingViewManager.m in Sources */ = {isa = PBXBuildFile; fileRef = C223958B1F505DD2000F0E6D /* ScanbotCroppingViewManager.m */; };
 		C22395A01F505DD2000F0E6D /* SharedConfiguration.m in Sources */ = {isa = PBXBuildFile; fileRef = C223958F1F505DD2000F0E6D /* SharedConfiguration.m */; };
 		C22395A21F505DD2000F0E6D /* ImageUtils.m in Sources */ = {isa = PBXBuildFile; fileRef = C22395941F505DD2000F0E6D /* ImageUtils.m */; };
 		C22395A31F505DD2000F0E6D /* OCRUtils.m in Sources */ = {isa = PBXBuildFile; fileRef = C22395961F505DD2000F0E6D /* OCRUtils.m */; };
 		C25900B51F8E056000B90611 /* JSONOptionsUtils.m in Sources */ = {isa = PBXBuildFile; fileRef = C25900B41F8E056000B90611 /* JSONOptionsUtils.m */; };
-		C25AE2271F83AD6300FAB927 /* ScanbotCroppingViewModule.m in Sources */ = {isa = PBXBuildFile; fileRef = C25AE2261F83AD6300FAB927 /* ScanbotCroppingViewModule.m */; };
 		C2F600F91F8B625D00ACA8F8 /* ScanbotSDK.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C2F600F81F8B625D00ACA8F8 /* ScanbotSDK.framework */; };
+		F0334B3C20C18DA700D490CA /* ObjectMapper.m in Sources */ = {isa = PBXBuildFile; fileRef = F0334B3B20C18DA700D490CA /* ObjectMapper.m */; };
+		F0334B3E20C197CC00D490CA /* DefaultUILauncher.m in Sources */ = {isa = PBXBuildFile; fileRef = F0334B1C20C18B2500D490CA /* DefaultUILauncher.m */; };
+		F099068A20DD32440043DE28 /* JSONMappings.m in Sources */ = {isa = PBXBuildFile; fileRef = F099068920DD32440043DE28 /* JSONMappings.m */; };
+		F09BE7F920C7BF3D00EA204D /* ScanbotSDKConfiguration.m in Sources */ = {isa = PBXBuildFile; fileRef = F09BE7F820C7BF3D00EA204D /* ScanbotSDKConfiguration.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -39,6 +38,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		64A087932056CEEB00BAE715 /* JSONMappings.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSONMappings.h; sourceTree = "<group>"; };
 		C223956C1F505A49000F0E6D /* libRNScanbotSDK.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libRNScanbotSDK.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		C223956F1F505A49000F0E6D /* RNScanbotSDK.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RNScanbotSDK.h; sourceTree = "<group>"; };
 		C22395701F505A49000F0E6D /* RNScanbotSDK.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RNScanbotSDK.m; sourceTree = "<group>"; };
@@ -50,14 +50,6 @@
 		C22395811F505DD2000F0E6D /* SBSDKPolygon+JSON.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "SBSDKPolygon+JSON.m"; sourceTree = "<group>"; };
 		C22395821F505DD2000F0E6D /* UIColor+JSON.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIColor+JSON.h"; sourceTree = "<group>"; };
 		C22395831F505DD2000F0E6D /* UIColor+JSON.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIColor+JSON.m"; sourceTree = "<group>"; };
-		C22395841F505DD2000F0E6D /* ScanbotCameraView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ScanbotCameraView.h; sourceTree = "<group>"; };
-		C22395851F505DD2000F0E6D /* ScanbotCameraView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ScanbotCameraView.m; sourceTree = "<group>"; };
-		C22395861F505DD2000F0E6D /* ScanbotCamerViewManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ScanbotCamerViewManager.h; sourceTree = "<group>"; };
-		C22395871F505DD2000F0E6D /* ScanbotCamerViewManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ScanbotCamerViewManager.m; sourceTree = "<group>"; };
-		C22395881F505DD2000F0E6D /* ScanbotCroppingView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ScanbotCroppingView.h; sourceTree = "<group>"; };
-		C22395891F505DD2000F0E6D /* ScanbotCroppingView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ScanbotCroppingView.m; sourceTree = "<group>"; };
-		C223958A1F505DD2000F0E6D /* ScanbotCroppingViewManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ScanbotCroppingViewManager.h; sourceTree = "<group>"; };
-		C223958B1F505DD2000F0E6D /* ScanbotCroppingViewManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ScanbotCroppingViewManager.m; sourceTree = "<group>"; };
 		C223958E1F505DD2000F0E6D /* SharedConfiguration.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SharedConfiguration.h; sourceTree = "<group>"; };
 		C223958F1F505DD2000F0E6D /* SharedConfiguration.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SharedConfiguration.m; sourceTree = "<group>"; };
 		C22395931F505DD2000F0E6D /* ImageUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ImageUtils.h; sourceTree = "<group>"; };
@@ -66,9 +58,16 @@
 		C22395961F505DD2000F0E6D /* OCRUtils.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OCRUtils.m; sourceTree = "<group>"; };
 		C25900B31F8E056000B90611 /* JSONOptionsUtils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = JSONOptionsUtils.h; sourceTree = "<group>"; };
 		C25900B41F8E056000B90611 /* JSONOptionsUtils.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = JSONOptionsUtils.m; sourceTree = "<group>"; };
-		C25AE2251F83AD6300FAB927 /* ScanbotCroppingViewModule.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ScanbotCroppingViewModule.h; sourceTree = "<group>"; };
-		C25AE2261F83AD6300FAB927 /* ScanbotCroppingViewModule.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ScanbotCroppingViewModule.m; sourceTree = "<group>"; };
 		C2F600F81F8B625D00ACA8F8 /* ScanbotSDK.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ScanbotSDK.framework; path = ../ScanbotSDK.framework; sourceTree = "<group>"; };
+		F0334B1B20C18B2500D490CA /* DefaultUILauncher.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DefaultUILauncher.h; sourceTree = "<group>"; };
+		F0334B1C20C18B2500D490CA /* DefaultUILauncher.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DefaultUILauncher.m; sourceTree = "<group>"; };
+		F0334B3A20C18DA700D490CA /* ObjectMapper.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ObjectMapper.h; sourceTree = "<group>"; };
+		F0334B3B20C18DA700D490CA /* ObjectMapper.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ObjectMapper.m; sourceTree = "<group>"; };
+		F099068920DD32440043DE28 /* JSONMappings.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = JSONMappings.m; sourceTree = "<group>"; };
+		F09BE7F720C7BF3D00EA204D /* ScanbotSDKConfiguration.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ScanbotSDKConfiguration.h; sourceTree = "<group>"; };
+		F09BE7F820C7BF3D00EA204D /* ScanbotSDKConfiguration.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ScanbotSDKConfiguration.m; sourceTree = "<group>"; };
+		F09BE82720C7FA4800EA204D /* BarcodeMapping.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BarcodeMapping.h; sourceTree = "<group>"; };
+		F0DE353E20D7D0EB00F26D3F /* HashUtils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = HashUtils.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -103,22 +102,15 @@
 		C223956E1F505A49000F0E6D /* RNScanbotSDK */ = {
 			isa = PBXGroup;
 			children = (
+				F0334B1720C18AFC00D490CA /* DefaultUI */,
 				C22395921F505DD2000F0E6D /* Utils */,
 				C223957B1F505DD2000F0E6D /* Categories */,
-				C22395841F505DD2000F0E6D /* ScanbotCameraView.h */,
-				C22395851F505DD2000F0E6D /* ScanbotCameraView.m */,
-				C22395861F505DD2000F0E6D /* ScanbotCamerViewManager.h */,
-				C22395871F505DD2000F0E6D /* ScanbotCamerViewManager.m */,
-				C22395881F505DD2000F0E6D /* ScanbotCroppingView.h */,
-				C22395891F505DD2000F0E6D /* ScanbotCroppingView.m */,
-				C223958A1F505DD2000F0E6D /* ScanbotCroppingViewManager.h */,
-				C223958B1F505DD2000F0E6D /* ScanbotCroppingViewManager.m */,
-				C25AE2251F83AD6300FAB927 /* ScanbotCroppingViewModule.h */,
-				C25AE2261F83AD6300FAB927 /* ScanbotCroppingViewModule.m */,
 				C223958E1F505DD2000F0E6D /* SharedConfiguration.h */,
 				C223958F1F505DD2000F0E6D /* SharedConfiguration.m */,
 				C223956F1F505A49000F0E6D /* RNScanbotSDK.h */,
 				C22395701F505A49000F0E6D /* RNScanbotSDK.m */,
+				F09BE7F720C7BF3D00EA204D /* ScanbotSDKConfiguration.h */,
+				F09BE7F820C7BF3D00EA204D /* ScanbotSDKConfiguration.m */,
 			);
 			path = RNScanbotSDK;
 			sourceTree = "<group>";
@@ -141,14 +133,29 @@
 		C22395921F505DD2000F0E6D /* Utils */ = {
 			isa = PBXGroup;
 			children = (
+				64A087932056CEEB00BAE715 /* JSONMappings.h */,
 				C22395931F505DD2000F0E6D /* ImageUtils.h */,
 				C22395941F505DD2000F0E6D /* ImageUtils.m */,
 				C22395951F505DD2000F0E6D /* OCRUtils.h */,
 				C22395961F505DD2000F0E6D /* OCRUtils.m */,
 				C25900B31F8E056000B90611 /* JSONOptionsUtils.h */,
 				C25900B41F8E056000B90611 /* JSONOptionsUtils.m */,
+				F0334B3A20C18DA700D490CA /* ObjectMapper.h */,
+				F0334B3B20C18DA700D490CA /* ObjectMapper.m */,
+				F09BE82720C7FA4800EA204D /* BarcodeMapping.h */,
+				F0DE353E20D7D0EB00F26D3F /* HashUtils.h */,
+				F099068920DD32440043DE28 /* JSONMappings.m */,
 			);
 			path = Utils;
+			sourceTree = "<group>";
+		};
+		F0334B1720C18AFC00D490CA /* DefaultUI */ = {
+			isa = PBXGroup;
+			children = (
+				F0334B1B20C18B2500D490CA /* DefaultUILauncher.h */,
+				F0334B1C20C18B2500D490CA /* DefaultUILauncher.m */,
+			);
+			path = DefaultUI;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -210,17 +217,16 @@
 			buildActionMask = 2147483647;
 			files = (
 				C25900B51F8E056000B90611 /* JSONOptionsUtils.m in Sources */,
-				C223959B1F505DD2000F0E6D /* ScanbotCameraView.m in Sources */,
 				C22395711F505A49000F0E6D /* RNScanbotSDK.m in Sources */,
 				C22395971F505DD2000F0E6D /* SBSDKOCRResult+JSON.m in Sources */,
 				C22395A01F505DD2000F0E6D /* SharedConfiguration.m in Sources */,
-				C223959E1F505DD2000F0E6D /* ScanbotCroppingViewManager.m in Sources */,
-				C25AE2271F83AD6300FAB927 /* ScanbotCroppingViewModule.m in Sources */,
 				C22395991F505DD2000F0E6D /* SBSDKPolygon+JSON.m in Sources */,
-				C223959C1F505DD2000F0E6D /* ScanbotCamerViewManager.m in Sources */,
+				F09BE7F920C7BF3D00EA204D /* ScanbotSDKConfiguration.m in Sources */,
+				F0334B3E20C197CC00D490CA /* DefaultUILauncher.m in Sources */,
 				C22395981F505DD2000F0E6D /* SBSDKPageAnalyzerResult+JSON.m in Sources */,
 				C223959A1F505DD2000F0E6D /* UIColor+JSON.m in Sources */,
-				C223959D1F505DD2000F0E6D /* ScanbotCroppingView.m in Sources */,
+				F0334B3C20C18DA700D490CA /* ObjectMapper.m in Sources */,
+				F099068A20DD32440043DE28 /* JSONMappings.m in Sources */,
 				C22395A31F505DD2000F0E6D /* OCRUtils.m in Sources */,
 				C22395A21F505DD2000F0E6D /* ImageUtils.m in Sources */,
 			);
@@ -352,9 +358,14 @@
 					"$(SRCROOT)/../react-native/React/**",
 					"$(SRCROOT)/../React/**",
 				);
-				OTHER_LDFLAGS = "-ObjC";
+				OTHER_CFLAGS = "-v";
+				OTHER_LDFLAGS = (
+					"-ObjC",
+					"-v",
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
+				WARNING_CFLAGS = "-v";
 			};
 			name = Debug;
 		};
@@ -371,9 +382,14 @@
 					"$(SRCROOT)/../react-native/React/**",
 					"$(SRCROOT)/../React/**",
 				);
-				OTHER_LDFLAGS = "-ObjC";
+				OTHER_CFLAGS = "-v";
+				OTHER_LDFLAGS = (
+					"-ObjC",
+					"-v",
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
+				WARNING_CFLAGS = "-v";
 			};
 			name = Release;
 		};
