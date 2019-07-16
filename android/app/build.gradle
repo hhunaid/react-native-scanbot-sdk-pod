@@ -1,15 +1,18 @@
 apply plugin: 'com.android.library'
 
-def androidSupportVersion = '27.1.0'
+def DEFAULT_COMPILE_SDK_VERSION = 27
+def DEFAULT_BUILD_TOOLS_VERSION = "27.0.3"
+def DEFAULT_TARGET_SDK_VERSION = 27
+def DEFAULT_SUPPORT_LIB_VERSION = '27.1.0'
 
 android {
-    compileSdkVersion = 27
-    buildToolsVersion = "27.0.3"
-    androidSupportVersion = androidSupportVersion
+    compileSdkVersion = project.hasProperty('compileSdkVersion') ? project.compileSdkVersion : DEFAULT_COMPILE_SDK_VERSION
+    buildToolsVersion = project.hasProperty('buildToolsVersion') ? project.buildToolsVersion : DEFAULT_BUILD_TOOLS_VERSION
+    androidSupportVersion = project.hasProperty('supportLibVersion') ? project.supportLibVersion : DEFAULT_SUPPORT_LIB_VERSION
 
     defaultConfig {
         minSdkVersion 16
-        targetSdkVersion 27
+        targetSdkVersion project.hasProperty('targetSdkVersion') ? project.targetSdkVersion : DEFAULT_TARGET_SDK_VERSION
         versionCode 1
         versionName "1.0"
         multiDexEnabled true
@@ -38,18 +41,18 @@ android {
 }
 
 dependencies {
-    compile fileTree(include: ['*.jar'], dir: 'libs')
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
 
-    compile 'com.facebook.react:react-native:+'
+    implementation 'com.facebook.react:react-native:+'
 
-    compile "com.android.support:support-annotations:$androidSupportVersion"
-    compile "com.android.support:support-v4:$androidSupportVersion"
-    compile "com.android.support:appcompat-v7:$androidSupportVersion"
+    implementation "com.android.support:support-annotations:$androidSupportVersion"
+    implementation "com.android.support:support-v4:$androidSupportVersion"
+    implementation "com.android.support:appcompat-v7:$androidSupportVersion"
 
-    compile ('io.scanbot:sdk-package-ui:1.33.3') {
+    implementation ('io.scanbot:sdk-package-ui:1.33.3') {
         exclude group: 'com.intellij', module: 'annotations'
     }
-    compile ('io.scanbot:sdk-package-4:1.33.3') {
+    implementation ('io.scanbot:sdk-package-4:1.33.3') {
         exclude group: 'com.github.rjeschke', module: 'neetutils-base'
         exclude group: 'com.intellij', module: 'annotations'
     }
