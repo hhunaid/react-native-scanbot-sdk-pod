@@ -1,6 +1,6 @@
 {
   "name": "react-native-scanbot-sdk",
-  "version": "2.0.5",
+  "version": "2.0.6",
   "description": "Scanbot SDK React Native Module",
   "main": "src/index.js",
   "files": [
